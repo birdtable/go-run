@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"id\":\"h8\",\"extra\":{\"note\":\"<a href=\\\"x\\\">&</a>\",\"line\":\"â\u0080¨\"}}\n")

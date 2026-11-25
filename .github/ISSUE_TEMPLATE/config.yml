@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/birdtable/go-run/security/advisories/new
+    about: Report it privately here, never in a public issue. SECURITY.md says how.

@@ -1,0 +1,38 @@
+exit	TestEndBuildsTheKindsWordAndCodeFromTheTable	all	End builds the kind's word and code from the caller's table, and the zero Ending is code 1
+exit	TestNewRefusesATableThatCannotBeRead	all	New refuses a table that cannot be read
+runlog	Test602EntriesCostTheirOwnBytesAndNoEntryReadsTheLog	all	An entry costs its own line: 602 entries of 415 bytes on one run are under twice their bytes in the file, and no entry reads the log
+runlog	TestABeginRefusedForLengthMakesNoFolder	all	A Begin refused with ErrLineTooLong on a Log with no Root makes no folder and no file
+runlog	TestAFinishedRunResumedAndFinishedAgainReadsAsTheLastClose	all	A run resumed after its close keeps that close until Finish is called again, and the last close is the run's
+runlog	TestAFolderTurnedToALinkAfterTheRootCarriesNoWrite	all	A write is made beneath the Root the program holds, never through a link put at its folder since: a refused write is in Handle.Err
+runlog	TestAHeldLogFailsAWriteAfterTheBound	all	A write waits at most 10 s for another process's hold on the log, then fails with an error matching context.DeadlineExceeded, kept in Handle.Err
+runlog	TestAHeldLogFailsAnEntryAfterTheBound	all	An entry waits for another process's hold on the log at most 10 s from a Handle, or until its ctx ends from a Log, then fails with an error matching context.DeadlineExceeded
+runlog	TestALineIsWrittenAgainByteForByte	all	A record read and written again is the same line, byte for byte
+runlog	TestALineLongerThanMaxLineIsRefusedAtTheWriteAndTheFileIsAsItWas	all	A write whose line is longer than MaxLine writes nothing and is ErrLineTooLong, from Begin, Set, Change, Handle.Entry and Log.Entry, and the run's later lines are still written
+runlog	TestALogWithNoEntryLinesReadsAsItDidBefore	all	A log with no entry lines reads as it did before entry lines, and a record that holds entry, time and value beside its id is still a record
+runlog	TestALongLineAndALineBeyondMaxLineAreReadAsBefore	all	A line longer than the reader's buffer is read whole, and a line beyond MaxLine is skipped and counted, with CRLF endings
+runlog	TestAReadOfAFolderAtTheLogsNameIsErrNotPlain	all	A read of a log that is a folder is ErrNotPlain, with a Root and with a Path
+runlog	TestAReadOfALinkAtTheLogsNameIsErrNotPlain	linux,darwin	A read of a log that is a link to another file is ErrNotPlain and reads none of that file's records
+runlog	TestAReadOfAPipeAtTheLogsNameReturnsAtOnceAsErrNotPlain	linux,darwin	A read of a log that is a pipe with no writer returns at once, as ErrNotPlain
+runlog	TestAReadOfAPlainOrMissingLogIsAsBefore	all	A read of a missing log is no runs, and a plain log still reads, with a Root and with a Path
+runlog	TestARecordAndAnEntryHandedBackAreNotTheReadBuffer	all	A record, its Extra and its entries that Read hands back are not slices of the buffer the next line is read into
+runlog	TestARunReadsBackAsItsLastLine	all	A run's last line reads back as the run: its outcome, summary, changes and the caller's fields
+runlog	TestARunThatNeverFinishedIsInterrupted	all	A run that ended before Finish reads as interrupted, with its changes so far
+runlog	TestATornLastLineIsEndedAndTheNextRecordIsKept	all	A log whose last line another writer left torn has it ended, so the next record is kept and Read skips the torn line alone
+runlog	TestATornLineLeavesTheRestReadable	all	A torn last line is skipped and counted, and the lines before it stand
+runlog	TestAnEntryIsALineOfItsOwnThatNamesItsRunAndHasNoID	all	Handle.Entry and Log.Entry each write one line that names the run under entry, with its time and value and no id, and Read, Find and Resume give the run's entries in Record.Entries in the order written
+runlog	TestAnEntryLineWithNoTimeOrNoValueIsSkippedAndANullValueFolds	all	An entry line with no time or no value is skipped and counted, and an entry of nil, written with a value of null, folds
+runlog	TestEntryLinesFoldInFileOrderAndADamagedOneCostsThatEntryAlone	all	A run's entry lines fold in file order wherever they fall around its record lines, and a torn one, or one whose run the log does not hold, is skipped and counted alone
+runlog	TestLinesRoundTripsARunWithItsEntries	all	Lines writes each kept run's record line and then its entry lines, and the lines read back as the same runs and entries
+runlog	TestPermAndDirPermAreRefusedOnWindows	windows	Perm and DirPerm are refused with errors.ErrUnsupported and nothing is made
+runlog	TestReadSinceReadsOnlyWhatCameAfterTheOffset	all	ReadSince from the offset it handed back reads only the lines written after it, for a Log by Path and beneath a Root
+runlog	TestReadSinceRefusesAnOffsetThatIsNotALineStart	all	ReadSince from an offset inside a line, past the end or below 0 is ErrBadOffset, and a last line with no newline is read and not counted in the offset
+runlog	TestReadSinceTheLastRunReadsLessThanTheWholeFile	all	ReadSince from the offset of the last run of a 2 MB log reads that run alone
+runlog	TestResumeTakesTheWholeIDAndNothingElse	all	Resume finds a run by its whole id and by nothing else: a prefix or an unknown id is ErrNotFound
+runlog	TestSecondConsumerAddsEntriesOfItsOwnTypeWithAndWithoutAHandle	all	Entries of the caller's own type, added through a Handle and by the run's id from a Log with no Handle, read back through Entry.Decode in the order written
+runlog	TestSecondConsumerKeepsAListOfItsOwnBySettingItAgain	all	A list field of the caller's own type, set again through Handle.Set, reads back through Record.Field as the second list
+runlog	TestTheLogIsItsWritersUnlessTheProgramSays	linux,darwin	The log is 0600 unless the program sets Perm, and its folder is 0700
+runlog	TestTwentyEntriesOfAMebibyteOnOneRunAllReadBack	all	Twenty entries of 1 MiB on one run all read back, in order
+runlog	TestTwoRunsAtOnceInOneProcessKeepOnlyTheirOwn	all	Two runs in one process keep only their own changes
+version	TestAStampLaysItsFieldsOverGosRecord	all	A stamp lays its non-empty fields over Go's record
+version	TestFromKeepsTheVersionAsGoRecordedIt	all	The version is kept as Go recorded it: a tag, a pseudo-version, +dirty or (devel)
+version	TestStringNeverPrintsAnEmptyVersionAndAlwaysNamesTheToolchain	all	String never prints an empty version and always names the toolchain

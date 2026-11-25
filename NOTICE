@@ -1,0 +1,4 @@
+go-run
+Copyright (c) the go-run authors, under the licence in LICENSE.
+
+It requires golang.org/x/mod (BSD-3-Clause, Copyright The Go Authors).

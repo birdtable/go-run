@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"id\":\"f6\",\"code\":\"0\"}\n{\"id\":\"f6\",\"started\":\"yesterday\"}\n{\"id\":\"f6\",\"undo\":\"none\"}\n{\"id\":7}\n")

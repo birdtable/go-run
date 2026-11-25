@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"version\":3,\"argv\":[\"app\"],\"code\":0}\n{\"id\":\"\",\"argv\":[\"app\"]}\n")

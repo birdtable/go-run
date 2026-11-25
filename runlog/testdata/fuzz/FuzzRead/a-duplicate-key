@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"id\":\"k1\",\"id\":\"k2\",\"code\":1,\"code\":2}\n")

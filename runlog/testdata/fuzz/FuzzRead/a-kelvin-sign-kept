@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"id\":\"m4\",\"kept\":[{\"file\":\"/etc/app.conf\",\"copy\":\"/var/lib/app/kept/m4/app.conf\"}],\"\\u212Aept\":[{\"file\":\"/etc/other\",\"copy\":\"/tmp/other\"}]}\n")

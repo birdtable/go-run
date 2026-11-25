@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"version\":3,\"id\":\"a1\",\"argv\":[\"app\",\"tune\",\"--apply\"],\"started\":\"2026-11-10T09:00:00Z\",\"finished\":\"2026-11-10T09:00:01Z\",\"code\":0,\"changes\":[\"write /etc/app.conf\"],\"outcome\":\"done\",\"summary\":\"tuned\",\"kept\":[{\"file\":\"/etc/app.conf\",\"copy\":\"/var/lib/app/kept/a1/app.conf\",\"after\":\"sha256:00\"}],\"undo\":[{\"how\":\"copy_back\"}]}\n")

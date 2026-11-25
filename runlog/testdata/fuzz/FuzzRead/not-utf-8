@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"id\":\"g7\",\"summary\":\"\xff\xfe\",\"own\":\"\xc3\"}\n")

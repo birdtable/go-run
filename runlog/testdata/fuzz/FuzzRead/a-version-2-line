@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"version\":2,\"id\":\"v2\",\"argv\":[\"app\"],\"started\":\"2026-11-10T09:00:00Z\",\"code\":0,\"changes\":[],\"undo\":{\"how\":\"printed\"}}\n")

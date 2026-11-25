@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t d">
+  <title id="t">go-run</title>
+  <desc id="d">A finish flag, the flag in coral.</desc>
+  <rect width="256" height="256" rx="56" fill="#22264A"/><g transform="translate(128 128) scale(1.6) translate(-183 -148)"><path d="M158 190 V106" fill="none" stroke="#FFF6EC" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M158 110 H208 L194 131 L208 152 H158 Z" fill="#E8735A" stroke="#E8735A" stroke-width="10" stroke-linejoin="round"/></g>
+</svg>

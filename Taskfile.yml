@@ -1,0 +1,202 @@
+version: "3"
+
+# The tools are pinned in tools/<tool>.mod and built by go tool on first use;
+# nothing is installed on the machine. A tier is a task whose members run together
+# (deps:), each member with a timeout: on its cmds line. A member waits only for one it
+# needs; none of these needs another, so none waits. A tier's elapsed time is held to its
+# budget in budgets.yaml.
+
+env:
+  GOWORK: "off"
+  CGO_ENABLED: "0"
+
+vars:
+  TOOL: go tool -modfile=tools
+  GATE: go -C tools/gate run . -top {{.ROOT_DIR}}
+
+tasks:
+  default:
+    desc: list the tasks
+    cmds:
+      - go tool -modfile=tools/task.mod task --list
+
+  hooks:
+    desc: point git at hooks/, once per clone
+    cmds:
+      - cmd: git config core.hooksPath hooks
+        timeout: 1m
+
+  fmt:
+    desc: fail on a file gofmt would change
+    cmds:
+      - cmd: '{{.GATE}} fmt'
+        timeout: 1m
+
+  vet:
+    desc: go vet for each system
+    cmds:
+      - for: { matrix: { OS: [linux, darwin, windows], ARCH: [amd64, arm64] } }
+        cmd: GOOS={{.ITEM.OS}} GOARCH={{.ITEM.ARCH}} go vet ./...
+        timeout: 5m
+
+  build:
+    desc: go build for each system
+    cmds:
+      - for: { matrix: { OS: [linux, darwin, windows], ARCH: [amd64, arm64] } }
+        cmd: GOOS={{.ITEM.OS}} GOARCH={{.ITEM.ARCH}} go build ./...
+        timeout: 5m
+
+  lint:
+    desc: golangci-lint for each of the three systems, run together
+    cmds:
+      - cmd: '{{.GATE}} lint'
+        timeout: 10m
+      # The layer rows are held by plants (tools/gate, plants): a scratch module has the stubs of the packages and
+      # one file for each row of the layer table, each importing what that row must refuse, and the depguard report must name
+      # that file with that row's list. A row that is loosened or dropped leaves its plant unreported, and this is red.
+      - cmd: '{{.GATE}} plants'
+        timeout: 10m
+
+  test:
+    desc: the tests with the race detector, shuffled, and a run that skipped every test or ran none is red
+    cmds:
+      - cmd: >-
+          {{.TOOL}}/hatch.mod hatch tests --timeout 10m --red-when failed,none-ran,all-skipped,any-skipped
+          --green-word ok --red-word FAIL -count=1 -race -shuffle=on ./...
+        timeout: 11m
+    env:
+      CGO_ENABLED: "1"
+
+  # gitleaks git passes, having scanned 0 commits, where git reads no history: a tree taken from a
+  # tarball, or a .git it may not read. So secrets asks git first, by git's own exit, and fails with a
+  # line that says why; gitleaks' own exit then decides the scan. secrets-tree needs no history.
+  secrets-tree:
+    desc: gitleaks over the tree as it stands, with no history needed. The line to run on a tree taken from a tarball. It joins no tier.
+    cmds:
+      - cmd: '{{.TOOL}}/gitleaks.mod gitleaks dir . --config .gitleaks.toml --no-banner'
+        timeout: 10m
+
+  secrets:
+    desc: gitleaks over the committed history. Fails where this tree has no history of its own to scan; secrets-tree scans the tree alone.
+    cmds:
+      - cmd: '{{.GATE}} secrets-guard'
+        timeout: 1m
+      - cmd: '{{.TOOL}}/gitleaks.mod gitleaks git --config .gitleaks.toml --no-banner .'
+        timeout: 10m
+
+  secrets-staged:
+    desc: gitleaks over the staged files
+    cmds:
+      - cmd: '{{.TOOL}}/gitleaks.mod gitleaks git --staged --config .gitleaks.toml --no-banner .'
+        timeout: 10m
+
+  # Taskfile.yml calls Go. go-testkit's taskfile lint, run from tools/gate, a module of its own
+  # so that this module's requirements and layer rows are as they were, fails on a shell utility, a pipe, a redirection,
+  # a shell loop, a /tmp path or a path joined in shell in any command here.
+  taskfile:
+    desc: Taskfile.yml calls Go, by go-testkit's taskfile lint
+    cmds:
+      - cmd: go -C tools/gate test -count=1 ./...
+        timeout: 5m
+
+  second-consumer:
+    desc: the second-consumer examples, built with values unlike ours, build and pass (built with values unlike ours)
+    cmds:
+      - cmd: go test -run '^TestSecondConsumer' ./...
+        timeout: 5m
+
+  vuln:
+    desc: govulncheck over the module
+    cmds:
+      - cmd: '{{.TOOL}}/govulncheck.mod govulncheck ./...'
+        timeout: 10m
+
+  verify:
+    desc: go mod verify, and go mod tidy would change nothing
+    cmds:
+      - cmd: go mod verify
+        timeout: 2m
+      - cmd: go mod tidy -diff
+        timeout: 2m
+
+  licenses:
+    desc: every dependency's licence is one we may ship
+    cmds:
+      - cmd: '{{.TOOL}}/go-licenses.mod go-licenses check ./... --allowed_licenses=BSD-2-Clause,BSD-3-Clause,MIT,Apache-2.0,ISC'
+        timeout: 10m
+
+  changelog:
+    desc: changie reads its config and the changes folder; an empty unreleased folder passes
+    cmds:
+      - cmd: '{{.TOOL}}/changie.mod changie latest'
+        timeout: 10m
+
+  # apidiff is the diff of the exported surface, one run per system, and cmd/apigate of go-testkit
+  # holds three gates:
+  # the tag gate (what the tree breaks since the last tag equals api/breaks/<tag>.txt, byte for byte), the system gate
+  # (what one system exports that another does not equals api/systems.txt) and the marks gate (api/marks.txt names
+  # only names go doc finds). apidiff exits 0 on a break, so each gate reads its output, and a run of apidiff that
+  # fails is red by itself and never an empty output. The surface listing is go doc -all <pkg>@<tag>.
+  api:
+    desc: apidiff per system against the last tag and between the systems, and the marks file
+    cmds:
+      - cmd: go run github.com/birdtable/go-testkit/cmd/apigate
+        timeout: 10m
+      # The contract lines the tag held and the tree has not are the lines of api/breaks/<tag>.contract.txt,
+      # which apigate does not read. The tag's contract is written out of git by tools/gate, and api/'s own test compares.
+      - cmd: '{{.GATE}} contract'
+        timeout: 5m
+
+  size:
+    silent: true
+    desc: print the non-test Go lines of the module, and fail above the ceiling of 1054
+    cmds:
+      # The measure: every *.go file that is not *_test.go, outside tools/ (the pins and tools/gate), by its lines.
+      # The ceiling rises only with a change that adds exported behaviour, and its pull request says by how much and why.
+      - cmd: '{{.GATE}} size 1054'
+        timeout: 2m
+
+  # A pre-commit or pre-push past its budget passes when the 1-minute load before it was above 15.
+  # hatch holds no policy, so the values are named here: the row's shape, the load threshold, the
+  # words of the load lines and the advice. This task picks the row for the kind of host; hatch judges it.
+  budget:
+    internal: true
+    silent: true
+    desc: hold a tier's elapsed seconds to its budget in budgets.yaml
+    cmds:
+      - cmd: '{{.GATE}} budget {{.TIER}} {{.START}} "{{.LOAD}}"'
+        timeout: 1m
+
+  pre-commit:
+    desc: the tier a commit runs
+    vars:
+      START: { sh: '{{.GATE}} now' }
+      LOAD: { sh: '{{.GATE}} load' }
+    deps: [fmt, vet, lint, secrets-staged, second-consumer, taskfile]
+    cmds:
+      - task: budget
+        vars: { TIER: pre-commit, START: "{{.START}}", LOAD: "{{.LOAD}}" }
+
+  # The members of the pre-push tier, with no budget of their own; hatch runs this task under --cpu.
+  pre-push-members:
+    desc: the members of the pre-push tier, which pre-push holds to its CPU budget
+    deps: [fmt, vet, lint, secrets-staged, taskfile, build, test, secrets, vuln, verify, api]
+
+  pre-push:
+    desc: the tier a push runs, and the only claim of done, judged by its CPU time
+    vars:
+      START: { sh: '{{.GATE}} now' }
+      LOAD: { sh: '{{.GATE}} load' }
+    cmds:
+      - cmd: '{{.GATE}} cpu-tier "{{.START}}" "{{.LOAD}}"'
+        timeout: 30m
+
+  release:
+    desc: the tier a tag runs
+    vars:
+      START: { sh: '{{.GATE}} now' }
+      LOAD: { sh: '{{.GATE}} load' }
+    deps: [fmt, vet, lint, secrets-staged, taskfile, build, test, secrets, vuln, verify, api, licenses, changelog, size]
+    cmds:
+      - task: budget
+        vars: { TIER: release, START: "{{.START}}", LOAD: "{{.LOAD}}" }

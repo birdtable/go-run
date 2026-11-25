@@ -1,0 +1,23 @@
+# Each tier's budget and measured floor, in seconds. The floor is the least of three runs of the tier on a
+# quiet host of the kind named below, and is kept beside its budget as the proof there is room. A tier that
+# runs past its budget on that kind of host fails: pre-commit 2 s, release 15 s.
+# The release tier on a Linux or Windows amd64 release session (GITHUB_ACTIONS unset) has its own budget, release-budget-session.
+# On any other kind of host no budget applies, and the time is printed.
+# A hosted runner (GITHUB_ACTIONS set) has no budget: its run is held by the 20-minute timeout of its job.
+# The Taskfile reads this file with awk, so the shape is narrow: a comment line, or a key, a colon and a number.
+# The pre-push tier is judged by pre-push-cpu, its CPU time, user plus system (hatch budget --cpu); its wall
+# row, pre-push-budget, is only hatch's hang guard: a push still running at ten times it is killed. Pre-commit and
+# release are judged by their wall budgets. The CPU floor is the least of three runs of the tier, each after
+# go clean -testcache, on a Darwin-arm64 host with 15 CPUs: 36.1, 28.9 and 28.9 s of CPU, at loads 5.6, 8.0 and
+# 9.4 before the tier. The row is the floor plus 16 s of room, 56 percent, 9 s over the worst of the three. A push
+# with a fully cold cache that goes red is warmed once and retried, never waived.
+host: Darwin-arm64
+pre-commit-floor: 1
+pre-commit-budget: 2
+pre-push-floor: 4
+pre-push-budget: 10
+pre-push-cpu-floor: 29
+pre-push-cpu: 45
+release-floor: 4
+release-budget: 15
+release-budget-session: 60
